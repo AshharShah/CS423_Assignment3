@@ -66,7 +66,7 @@ resource "aws_subnet" "private_subnet_az1" {
   vpc_id            = aws_vpc.devops_vpc.id
   cidr_block        = var.private_sub_1[0]
   availability_zone = var.private_sub_1[1]
-  map_public_ip_on_launch = false
+  map_public_ip_on_launch = false // set to true if you dont want a public ip
   tags = {
     Name = var.private_sub_1[2]
   }
@@ -75,7 +75,7 @@ resource "aws_subnet" "private_subnet_az2" {
   vpc_id            = aws_vpc.devops_vpc.id
   cidr_block        = var.private_sub_2[0]
   availability_zone = var.private_sub_2[1]
-  map_public_ip_on_launch = false
+  map_public_ip_on_launch = false // set to true if you dont want a public ip
   tags = {
     Name = var.private_sub_2[2]
   }
@@ -84,10 +84,11 @@ resource "aws_subnet" "private_subnet_az2" {
 resource "aws_route_table" "private_route_table" {
   vpc_id = aws_vpc.devops_vpc.id
 
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.devops_igw.id
-  }
+  # commenting out or removing the existing route block that allows internet access
+  # route {
+  #   cidr_block = "0.0.0.0/0"
+  #   gateway_id = aws_internet_gateway.devops_igw.id
+  # }
 
   tags = {
     Name = "${aws_vpc.devops_vpc.tags.Name}-private-route-table"
@@ -189,6 +190,7 @@ resource "aws_instance" "web_server" {
   instance_type = "t2.micro"
   subnet_id     = aws_subnet.public_subnet_az1.id
   key_name      = aws_key_pair.my_key_pair.key_name
+  user_data     = file("./ec2_userdata/webserver.sh")
   tags = {
     Name = "Assignment4-EC2-WebServer"
   }
@@ -198,38 +200,13 @@ resource "aws_instance" "web_server" {
   ]
 }
 
-# resource "aws_instance" "web_server" {
-#   ami           = data.aws_ami.ubuntu.id
-#   instance_type = "t2.micro"
-#   subnet_id     = aws_subnet.public_subnet_az1.id
-#   key_name      = aws_key_pair.my_key_pair.key_name
-# #   user_data     = file("path_to_web_server_user_data.sh")  # Path to user_data.sh script
-#   tags = {
-#     Name = "Assignment4-EC2-WebServer"
-#   }
-# }
-
-# resource "aws_instance" "database_or_ml" {
-#   ami           = data.aws_ami.ubuntu.id
-#   instance_type = "t2.micro"
-#   subnet_id     = aws_subnet.private_subnet_az1.id
-#   key_name      = aws_key_pair.my_key_pair.key_name
-# #   user_data     = file("path_to_database_or_ml_user_data.sh")  # Path to user_data.sh script
-#   tags = {
-#     Name = "Assignment4-EC2-DatabaseOrML"
-#   }
-# }
-
 resource "aws_instance" "database_or_ml" {
   ami           = data.aws_ami.ubuntu.id
   instance_type = "t2.micro"
   subnet_id     = aws_subnet.public_subnet_az1.id
   key_name      = aws_key_pair.my_key_pair.key_name
+  user_data     = file("./ec2_userdata/dataserver.sh")
   tags = {
     Name = "Assignment4-EC2-DatabaseOrML"
   }
-  # Associate the security group with the EC2 instance
-  vpc_security_group_ids = [
-    aws_security_group.web_server_sg.id
-  ]
 }
