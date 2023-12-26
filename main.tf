@@ -203,7 +203,7 @@ resource "aws_instance" "web_server" {
 resource "aws_instance" "database_or_ml" {
   ami           = data.aws_ami.ubuntu.id
   instance_type = "t2.micro"
-  subnet_id     = aws_subnet.public_subnet_az1.id
+  subnet_id     = aws_subnet.private_subnet_az1.id
   key_name      = aws_key_pair.my_key_pair.key_name
   user_data     = file("./ec2_userdata/dataserver.sh")
   tags = {
